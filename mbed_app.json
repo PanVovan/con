@@ -1,0 +1,79 @@
+{
+    "macros": ["MBEDTLS_SHA1_C=1"],
+    "config": {
+        "wifi-ssid": {
+            "help": "WiFi SSID",
+            "value": "\"anv\""
+        },
+        "wifi-password": {
+            "help": "WiFi Password",
+            "value": "\"inea1624\""
+        },
+        "use-tls-socket": {
+            "value": false
+        },
+          "max-packet-size": {
+            "help": "Max serialized MQTT packet size, set by template parameter in paho library.",
+            "value": "200"
+        },
+        "max-connections": {
+            "help": "Max simultaneous connections, set by template parameter in paho library.",
+            "value": "5"
+        },
+        "tests-broker-hostname": {
+            "help": "Name or address of the broker server hostname.",
+            "value": "\"192.168.8.52\""
+        },
+        "tests-topic": {
+            "help": "Name of the public test topic that publishes message frequently. Required for *_SUBSCRIBE_RECEIVE tests.",
+            "value": "\"test\""
+        },
+        "tests-public-topic-enable": {
+            "help": "Set to true if there is a publicly available topic that gets messages posted frequently. See tests-public-topic-name. Required for *_SUBSCRIBE_RECEIVE tests.",
+            "value": "false"
+        },
+        "tests-public-topic-name": {
+            "help": "Name of the public test topic that publishes message frequently. Required for *_SUBSCRIBE_RECEIVE tests.",
+            "value": "\"mbed_public_test_topic\""
+        },
+        "tests-mqtt-sn-enable": {
+            "help": "Set to true if an MQTT-SN Gateway is available.",
+            "value": "false"
+        },
+        "tests-username-password-protection-enable": {
+            "help": "Set to true if the MQTT broker has username/password protection enabled. Provide the username and password in tests-username and tests-password.",
+            "value": "false"
+        },
+        "tests-tls-enable": {
+            "help": "Set to true if the MQTT broker has TLS protection enabled. NOTE: you need to set certificate in mqtt_global::SSL_CA_PEM.",
+            "value": "false"
+        },
+        "tests-username": {
+            "help": "MQTT messages username. To be used in the *USER_PASSWORD* tests. See also tests-username-always",
+            "value": "\"mbed\""
+        },
+        "tests-password": {
+            "help": "MQTT messages password. To be used in the *USER_PASSWORD* tests. See also tests-username-always",
+            "value": "\"1234\""
+        },
+        "tests-username-always": {
+            "help": "Always attach the username and password to messages (some brokers require this).",
+            "value": "false"
+        }
+    },
+    "target_overrides": {
+        "*": {
+            "mbed-mqtt.max-connections": "5",
+            "mbed-mqtt.max-packet-size": "1024",
+            "target.network-default-interface-type": "WIFI",
+            "platform.stdio-convert-newlines": true,
+            "esp8266.provide-default" : true,
+            "esp8266.tx": "D8",
+            "esp8266.rx": "D2",
+            "esp8266.socket-bufsize": "1024",
+            "platform.stdio-baud-rate" :  115200,
+            "platform.default-serial-baud-rate": 115200,
+            "esp8266.debug": false
+        }
+    }
+}
