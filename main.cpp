@@ -1,47 +1,65 @@
 
 #include "mbed.h"
-#include "hcsr04ultrasonic.h"
+#include "HCSR04_driver/hcsr04ultrasonic.h"
 #include "MQTT-CLIENT/MQTTService.h"
+#include "TextLCD.h"
+#include <cstdio>
 #include <string>
 
+const char * buffer = new char[100];
 
-void handler(float dist);
-HCSR04 sensor(D7, D6, 1, handler);
+void AnalyseFullness(float fullness);
+HCSR04 sensor(D9, D10, 1.0f, AnalyseFullness);
+TextLCD lcd(D12, D11, D7, D6, D5, D4);
 
 
-void handler(float dist)
+void AnalyseFullness(float fullness)
 {
-    string str = to_string(dist);
-    SendDataToMQTT(CreateTopicName("/fullness"), str.c_str());
+    float max = sensor.GetMax();
+    int percent = 100 - (fullness-5)/(max-5)*100;
+    sprintf((char*)buffer, "%d", percent);
+    
+    SendDataToMQTT(CREATE_CLIENT_TOPIC_NAME(fullness), buffer);
+    lcd.locate(0, 0);
+    lcd.printf("Fullness: %6d", percent);
 }
 
-void AnalyseFullness(const char * buffer, float fullness)
+void AnalyseCoords(const char * buffer, float coord)
 {
-    string str = to_string(fullness);
-    buffer = str.c_str();
+    sprintf((char*)buffer, "%f", coord);
+    lcd.locate(0, 1);
+    lcd.printf("Lon: %.4f", coord);
+
 }
 
-void AnalyseCoords(const char * buffer, float fullness)
+void init()
 {
-    string str = to_string(fullness);
-    buffer = str.c_str();
+    AnalyseFullness(sensor.GetDistance());
+    AnalyseCoords(buffer, 51.508);
+    SendDataToMQTT(CREATE_CLIENT_TOPIC_NAME(longitude), buffer);
+    AnalyseCoords(buffer, -0.11);
+    SendDataToMQTT(CREATE_CLIENT_TOPIC_NAME(latitude), buffer);
+}
+
+void init_hardware(MQTT::MessageData &data)
+{
+    if (strcmp((const char*)(data.message.payload), "true"))
+    {
+        init();
+    }
 }
 
 int main()
 {
-    ConnectToMQTT();
-    const char* buffer = new char[100];
-    AnalyseFullness(buffer, sensor.GetDistance());
-    SendDataToMQTT(CreateTopicName("/fullness"), buffer);
-    AnalyseCoords(buffer, 51.508);
-    SendDataToMQTT(CreateTopicName("/longitude"), buffer);
-    AnalyseCoords(buffer, -0.11);
-    SendDataToMQTT(CreateTopicName("/latitude"), buffer);
+    lcd.cls();
 
-
+    sensor.SetMax(25.0f);
+    sensor.Start();
+    ConnectToMQTT(init_hardware);
+    init();
+    
     while (1)
     {
         sensor.CallHandlerIfDistanseChanged();
-        wait_us(60000);
     }
 }
