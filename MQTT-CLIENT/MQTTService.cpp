@@ -10,6 +10,7 @@ MQTTClient client(socket);
 void ConnectToMQTT( void (*init_function)(MQTT::MessageData &))
 {
     smartcon::net::connect();
+    
     MQTTPacket_willOptions last = MQTTPacket_willOptions_initializer;
     last.message.cstring = (char *)MQTT_CLIENT_ID;
     last.topicName.cstring = (char *) MQTT_LAST_WILL_TOPIC;
@@ -54,5 +55,5 @@ void SendDataToMQTT(const char * topic, const char * data)
         printf("socket failed with return value: %d NetIsAvailable: %d\n", res, i != nullptr);
     }
     #endif
-    client.yield(1000);
+    client.yield(10);
 }
