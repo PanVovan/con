@@ -6,8 +6,4 @@ mbed-os
 BUILD
 
 mbed-mqtt
-TextLCD
-GPS-Library
-GPS_
-troykagps
 SerialGPS
