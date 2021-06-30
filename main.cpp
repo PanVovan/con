@@ -16,6 +16,10 @@ void AnalyseLat(float coord);
 HCSR04 sensor(D9, D10, 1.0f, AnalyseFullness);
 TextLCD lcd(D11, D12, D4, D5, D6, D7);
 AmperkaGPS gps(D8, D2, AnalyseLat, AnalyseLon);
+Thread LCDThread;
+
+float _coord;
+bool trig;
 
 
 void AnalyseFullness(float fullness)
@@ -33,16 +37,12 @@ void AnalyseFullness(float fullness)
 void AnalyseLon(float coord)
 {
     sprintf((char*)buffer, "%f", coord);
-    lcd.locate(0, 1);
-    lcd.printf("Lon: %.4f", coord);
     SendDataToMQTT(CREATE_CLIENT_TOPIC_NAME(longitude), buffer);
 }
 
 void AnalyseLat(float coord)
 {
     sprintf((char*)buffer, "%f", coord);
-    lcd.locate(0, 1);
-    lcd.printf("Lat: %.4f", coord);
     SendDataToMQTT(CREATE_CLIENT_TOPIC_NAME(latitude), buffer);
 }
 
@@ -63,6 +63,26 @@ void init_hardware(MQTT::MessageData &data)
     }
 }
 
+void LCD()
+{
+    while (true)
+    {
+        lcd.locate(0, 1);
+        if(trig)
+        {
+            _coord = gps.GetLatitude();
+            lcd.printf("Lat: %.4f", _coord);
+        }
+        else
+        {
+            _coord = gps.GetLongitude();
+            lcd.printf("Lon: %.4f", _coord);
+        }
+        trig = !trig;
+        wait_us(5'000'000);
+    }
+}
+
 int main()
 {
     lcd.cls();
@@ -71,6 +91,7 @@ int main()
     sensor.Start();
     ConnectToMQTT(init_hardware);
     init();
+    LCDThread.start(callback(LCD));
     
     while (1)
     {
